@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Schedule</title>
+<link rel="stylesheet" href="style.css" />
+
+<!-- Import map: lets the browser resolve "react" / "react-dom" the same way schedule-app.jsx expects, with no bundler -->
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.3.1",
+    "react-dom": "https://esm.sh/react-dom@18.3.1",
+    "react-dom/client": "https://esm.sh/react-dom@18.3.1/client"
+  }
+}
+</script>
+
+<!-- Babel: transforms the JSX in the browser at load time, so no build step is needed for GitHub Pages -->
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<!--
+  schedule-app.jsx saves data through window.storage.get/set/delete/list
+  (that API only exists inside Claude's artifact preview). This shim
+  backs the same calls with localStorage so the app keeps working as a
+  plain static site, with no changes to schedule-app.jsx itself.
+-->
+<script>
+  window.storage = {
+    async get(key, shared) {
+      const raw = localStorage.getItem((shared ? "shared:" : "local:") + key);
+      if (raw === null) throw new Error("Key not found: " + key);
+      return { key, value: raw, shared: !!shared };
+    },
+    async set(key, value, shared) {
+      localStorage.setItem((shared ? "shared:" : "local:") + key, value);
+      return { key, value, shared: !!shared };
+    },
+    async delete(key, shared) {
+      const k = (shared ? "shared:" : "local:") + key;
+      const existed = localStorage.getItem(k) !== null;
+      localStorage.removeItem(k);
+      return { key, deleted: existed, shared: !!shared };
+    },
+    async list(prefix, shared) {
+      const ns = shared ? "shared:" : "local:";
+      const full = ns + (prefix || "");
+      const keys = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k.startsWith(full)) keys.push(k.slice(ns.length));
+      }
+      return { keys, prefix: prefix || "", shared: !!shared };
+    }
+  };
+</script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <!-- Your component, loaded exactly as uploaded -->
+  <script type="text/babel" data-type="module" data-presets="react" src="schedule-app.jsx"></script>
+
+  <!-- Mounts the App component onto the page -->
+  <script type="text/babel" data-type="module" data-presets="react">
+    import App from "./schedule-app.jsx";
+    import { createRoot } from "react-dom/client";
+    createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #F0F2F5;
+}
+
+#root {
+  height: 100%;
+}
+
+/* Shown for a brief moment while React/Babel load and mount the app */
+#root:empty::before {
+  content: "Loading schedule…";
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #6B7280;
+  font-size: 14px;
+}
